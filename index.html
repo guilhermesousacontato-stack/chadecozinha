@@ -234,7 +234,9 @@ btnAdd.addEventListener('click', () => {
   row.querySelector('input').focus();
 });
 
-form.addEventListener('submit', (e) => {
+const URL_PLANILHA = 'https://script.google.com/macros/s/AKfycbzgNVtQ70DVxSkM26gEpRXnjNmDb8sbqeHa5QGt0gqdYqXIbaXqSokHPL0vx_GaXyASqQ/exec';
+
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (btnConfirmar.disabled) return;
 
@@ -243,13 +245,30 @@ form.addEventListener('submit', (e) => {
     .filter(Boolean);
 
   const dados = { nome: nome.value.trim(), acompanhantes };
-  console.log('Confirmação:', dados);
 
-  form.hidden = true;
-  sucesso.hidden = false;
-  sucessoTexto.textContent = acompanhantes.length
-    ? `Obrigado, ${dados.nome}! Te esperamos com ${acompanhantes.length} acompanhante(s).`
-    : `Obrigado, ${dados.nome}! Te esperamos lá.`;
+  const textoOriginal = btnConfirmar.innerHTML;
+  btnConfirmar.disabled = true;
+  btnConfirmar.textContent = 'Enviando...';
+
+  try {
+    await fetch(URL_PLANILHA, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(dados)
+    });
+
+    form.hidden = true;
+    sucesso.hidden = false;
+    sucessoTexto.textContent = acompanhantes.length
+      ? `Obrigado, ${dados.nome}! Te esperamos com ${acompanhantes.length} acompanhante(s).`
+      : `Obrigado, ${dados.nome}! Te esperamos lá.`;
+  } catch (erro) {
+    console.error(erro);
+    alert('Não foi possível enviar sua confirmação. Verifique sua conexão e tente novamente.');
+    btnConfirmar.innerHTML = textoOriginal;
+    btnConfirmar.disabled = false;
+  }
 });
 </script>
 
